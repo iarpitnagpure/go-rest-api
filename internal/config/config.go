@@ -9,7 +9,7 @@ import (
 )
 
 type HttpSever struct {
-	Address string
+	Address string `yaml:"address" env:"address"`
 }
 
 // Used cleanenv package in go to mapped env variables or yaml variables with structs

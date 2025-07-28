@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/iarpitnagpure/go-rest-api/internal/config"
 )
@@ -15,6 +21,7 @@ func main() {
 	// Database setup
 
 	// Setup Router
+	// Create new router to set REST APIs using http package NewServeMux method
 	router := http.NewServeMux()
 
 	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
@@ -22,15 +29,42 @@ func main() {
 	})
 
 	// Setup Server
+	// Use Server method from http package and pass Address and router
 	server := http.Server{
 		Addr:    cfg.Address,
 		Handler: router,
 	}
 
-	fmt.Println("Server Started")
+	fmt.Println("Server Started", cfg)
 
-	err := server.ListenAndServe()
+	// Make Gracefull exit from ongoing program,  Create chan with signal and perform use notify package to listen system notification
+	done := make(chan os.Signal, 1)
+
+	// Notify causes package signal to relay incoming signals to c.
+	// If no signals are provided, all incoming signals will be relayed to c. Otherwise, just the provided signals will.
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	// Best practice to add in separate goroutine or add in main program
+	go func() {
+		// Listen to server using ListenAndServe method
+		err := server.ListenAndServe()
+		if err != nil {
+			log.Fatal("Fail to log server")
+		}
+	}()
+
+	// Make Gracefull exit from ongoing program
+	<-done
+
+	slog.Info("Shutting down the request")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := server.Shutdown(ctx)
 	if err != nil {
-		log.Fatal("Fail to log server")
+		slog.Error("Failed to shut down the server", slog.String("error", err.Error()))
 	}
+
+	slog.Info("Server shutdown susccessfully")
 }
