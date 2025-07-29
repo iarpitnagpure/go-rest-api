@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Student API",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/student-api/main.go",
+      "args": ["-config", "config/local.yaml"],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

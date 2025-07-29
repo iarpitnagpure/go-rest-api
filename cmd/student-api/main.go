@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/iarpitnagpure/go-rest-api/internal/config"
+	"github.com/iarpitnagpure/go-rest-api/internal/http/handlers/students"
 )
 
 func main() {
@@ -24,9 +25,7 @@ func main() {
 	// Create new router to set REST APIs using http package NewServeMux method
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome to student api"))
-	})
+	router.HandleFunc("POST /api/students", students.NewStudent())
 
 	// Setup Server
 	// Use Server method from http package and pass Address and router
@@ -35,7 +34,7 @@ func main() {
 		Handler: router,
 	}
 
-	fmt.Println("Server Started", cfg)
+	fmt.Println("Server Started on", cfg.Address)
 
 	// Make Gracefull exit from ongoing program,  Create chan with signal and perform use notify package to listen system notification
 	done := make(chan os.Signal, 1)
