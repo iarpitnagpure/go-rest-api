@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/iarpitnagpure/go-rest-api/internal/storage"
@@ -51,6 +52,32 @@ func NewStudent(storage storage.Storage) http.HandlerFunc {
 			return
 		}
 
+		// Send new student id as API response
 		response.ResponseHandler(w, http.StatusCreated, map[string]int64{"id": lastId})
+	}
+}
+
+func GetStudentById(storage storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get API params from request by using PathValue method
+		id := r.PathValue("id")
+		fmt.Println("id", id)
+
+		// Need to convert string id into int64 using strconv.ParseInt
+		intId, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			response.ResponseHandler(w, http.StatusBadRequest, response.ResponseErrorHandler(err))
+			return
+		}
+
+		// Get student from database
+		student, err := storage.GetStudentById(intId)
+		if err != nil {
+			response.ResponseHandler(w, http.StatusInternalServerError, response.ResponseErrorHandler(err))
+			return
+		}
+
+		// Send student as API response
+		response.ResponseHandler(w, http.StatusOK, student)
 	}
 }

@@ -35,6 +35,9 @@ func main() {
 	// POST API to add new student
 	router.HandleFunc("POST /api/students", students.NewStudent(storage))
 
+	// GET API to get student with specific id
+	router.HandleFunc("GET /api/students/{id}", students.GetStudentById(storage))
+
 	// Setup Server
 	// Use Server method from http package and pass Address and router
 	server := http.Server{
