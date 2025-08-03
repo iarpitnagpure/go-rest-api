@@ -81,3 +81,17 @@ func GetStudentById(storage storage.Storage) http.HandlerFunc {
 		response.ResponseHandler(w, http.StatusOK, student)
 	}
 }
+
+func GetStudents(storage storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get students from database
+		students, err := storage.GetStudents()
+		if err != nil {
+			response.ResponseHandler(w, http.StatusInternalServerError, response.ResponseErrorHandler(err))
+			return
+		}
+
+		// Send student as API response
+		response.ResponseHandler(w, http.StatusOK, students)
+	}
+}

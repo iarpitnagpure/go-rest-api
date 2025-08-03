@@ -38,6 +38,9 @@ func main() {
 	// GET API to get student with specific id
 	router.HandleFunc("GET /api/students/{id}", students.GetStudentById(storage))
 
+	// GET API to get all student
+	router.HandleFunc("GET /api/students", students.GetStudents(storage))
+
 	// Setup Server
 	// Use Server method from http package and pass Address and router
 	server := http.Server{
