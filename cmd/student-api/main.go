@@ -13,6 +13,7 @@ import (
 
 	"github.com/iarpitnagpure/go-rest-api/internal/config"
 	"github.com/iarpitnagpure/go-rest-api/internal/http/handlers/students"
+	"github.com/iarpitnagpure/go-rest-api/internal/storage/sqlite"
 )
 
 func main() {
@@ -20,12 +21,19 @@ func main() {
 	cfg := config.MustLoad()
 
 	// Database setup
+	storage, err := sqlite.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Print("storage initialized", storage)
 
 	// Setup Router
 	// Create new router to set REST APIs using http package NewServeMux method
 	router := http.NewServeMux()
 
-	router.HandleFunc("POST /api/students", students.NewStudent())
+	// POST API to add new student
+	router.HandleFunc("POST /api/students", students.NewStudent(storage))
 
 	// Setup Server
 	// Use Server method from http package and pass Address and router
@@ -60,7 +68,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := server.Shutdown(ctx)
+	err = server.Shutdown(ctx)
 	if err != nil {
 		slog.Error("Failed to shut down the server", slog.String("error", err.Error()))
 	}
