@@ -115,3 +115,57 @@ func (s *Sqlite) GetStudents() ([]types.Student, error) {
 
 	return students, nil
 }
+
+// Update student by using student payload
+// Sqlite struct inherit UpdateStudent method
+func (s *Sqlite) UpdateStudent(student types.Student) (types.Student, error) {
+	stmt, err := s.Db.Prepare(`
+		UPDATE students
+		SET name = ?, email = ?, age = ?
+		WHERE id = ?
+	`)
+	if err != nil {
+		return types.Student{}, fmt.Errorf("failed to prepare update statement: %v", err)
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(student.Name, student.Email, student.Age, student.Id)
+	if err != nil {
+		return types.Student{}, fmt.Errorf("failed to execute update: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return types.Student{}, fmt.Errorf("failed to get affected rows: %v", err)
+	}
+	if rowsAffected == 0 {
+		return types.Student{}, fmt.Errorf("no student found with id %d", student.Id)
+	}
+
+	return student, nil
+}
+
+// Delete student by using student payload
+// Sqlite struct inherit DeleteStudentByID method
+func (s *Sqlite) DeleteStudentById(id int64) (bool, error) {
+	stmt, err := s.Db.Prepare("DELETE FROM students WHERE id = ?")
+	if err != nil {
+		return false, fmt.Errorf("failed to prepare delete statement: %v", err)
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(id)
+	if err != nil {
+		return false, fmt.Errorf("failed to execute delete: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("failed to retrieve affected rows: %v", err)
+	}
+	if rowsAffected == 0 {
+		return false, fmt.Errorf("no student found with id %d", id)
+	}
+
+	return true, nil
+}

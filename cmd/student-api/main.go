@@ -41,6 +41,12 @@ func main() {
 	// GET API to get all student
 	router.HandleFunc("GET /api/students", students.GetStudents(storage))
 
+	// PATCH API to update student details
+	router.HandleFunc("PATCH /api/students", students.UpdateStudent(storage))
+
+	// DELETE API to delete student with specific id
+	router.HandleFunc("DELETE /api/students/{id}", students.DeleteStudentById(storage))
+
 	// Setup Server
 	// Use Server method from http package and pass Address and router
 	server := http.Server{

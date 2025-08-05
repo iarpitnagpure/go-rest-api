@@ -95,3 +95,69 @@ func GetStudents(storage storage.Storage) http.HandlerFunc {
 		response.ResponseHandler(w, http.StatusOK, students)
 	}
 }
+
+func UpdateStudent(storage storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var student types.Student
+
+		// Add request body into student variable using json.NewDecoder, Accepts request body and struct pointer
+		err := json.NewDecoder(r.Body).Decode(&student)
+		// Check is there EOF error first, Since EOF is the error returned by Read when no more input is available.
+		if errors.Is(err, io.EOF) {
+			response.ResponseHandler(w, http.StatusBadRequest, response.ResponseErrorHandler(err))
+			return
+		}
+
+		// Check any other error
+		if err != nil {
+			response.ResponseHandler(w, http.StatusBadRequest, response.ResponseErrorHandler(err))
+			return
+		}
+
+		// request validation
+		if err := validator.New().Struct(student); err != nil {
+			// Type cast variables
+			validateError := err.(validator.ValidationErrors)
+			response.ResponseHandler(w, http.StatusBadRequest, response.ResponseValidationHandler(validateError))
+			return
+		}
+
+		// Update students in database
+		students, err := storage.UpdateStudent(student)
+		if err != nil {
+			response.ResponseHandler(w, http.StatusInternalServerError, response.ResponseErrorHandler(err))
+			return
+		}
+
+		// Send updated student as API response
+		response.ResponseHandler(w, http.StatusOK, students)
+	}
+}
+
+func DeleteStudentById(storage storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get API params from request by using PathValue method
+		id := r.PathValue("id")
+		fmt.Println("id", id)
+
+		// Need to convert string id into int64 using strconv.ParseInt
+		intId, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			response.ResponseHandler(w, http.StatusBadRequest, response.ResponseErrorHandler(err))
+			return
+		}
+
+		// Get student from database
+		result, err := storage.DeleteStudentById(intId)
+		if err != nil {
+			response.ResponseHandler(w, http.StatusInternalServerError, response.ResponseErrorHandler(err))
+			return
+		}
+
+		isRecordDeleted := types.StudentRecord{
+			IsRecordDeleted: result,
+		}
+		// Send student as API response
+		response.ResponseHandler(w, http.StatusOK, isRecordDeleted)
+	}
+}
